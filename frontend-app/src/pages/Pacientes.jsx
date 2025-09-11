@@ -7,7 +7,6 @@ export default function Pacientes() {
   const [filtro, setFiltro]       = useState('');
   const [pagina, setPagina]       = useState(1);
   const [porPagina, setPorPagina] = useState(10);
-  const [riesgos, setRiesgos]     = useState({});
   const [cargando, setCargando]   = useState(true);
   const [error, setError]         = useState(null);
   const navigate = useNavigate();
@@ -35,28 +34,6 @@ export default function Pacientes() {
     fetchPacientes();
   }, [token]);
 
-  useEffect(() => {
-    const fetchRiesgos = async () => {
-      try {
-        const res = await fetch('/prediccion');
-        if (!res.ok) throw new Error(`Error ${res.status}`);
-        const data = await res.json();
-        const mapa = {};
-        ['riesgo_alto', 'riesgo_bajo'].forEach(cat => {
-          data[cat].forEach(r => {
-            mapa[r.paciente_id] = {
-              riesgo: cat === 'riesgo_alto' ? 'alto' : 'bajo',
-              prob: r.probabilidad_acv
-            };
-          });
-        });
-        setRiesgos(mapa);
-      } catch (err) {
-        console.error('Error cargando predicciones ACV:', err);
-      }
-    };
-    fetchRiesgos();
-  }, []);
 
   const handleEliminar = async id => {
     if (!window.confirm('¿Eliminar paciente?')) return;
@@ -148,7 +125,6 @@ export default function Pacientes() {
                 <th>Documento</th>
                 <th>Edad</th>
                 <th>Teléfono</th>
-                <th>Riesgo ACV</th>
                 <th style={{ minWidth: '140px' }}>Acciones</th>
               </tr>
             </thead>
@@ -160,17 +136,6 @@ export default function Pacientes() {
                   <td>{p.documento}</td>
                   <td>{calcularEdad(p.fecha_nacimiento)}</td>
                   <td>{p.telefono}</td>
-                  <td>
-                    {riesgos[p.id] ? (
-                      <span className={
-                        riesgos[p.id].riesgo === 'alto' ? 'text-danger' : 'text-success'
-                      }>
-                        {(riesgos[p.id].prob * 100).toFixed(1)}%
-                      </span>
-                    ) : (
-                      <span className="text-muted">-</span>
-                    )}
-                  </td>
                   <td>
                     <button
                       className="btn btn-sm btn-outline-primary me-1"
@@ -198,7 +163,7 @@ export default function Pacientes() {
               ))}
               {filtrados.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center text-muted py-4">
+                  <td colSpan="6" className="text-center text-muted py-4">
                     No se encontraron pacientes
                   </td>
                 </tr>
